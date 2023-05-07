@@ -1,6 +1,6 @@
 
 """
-    AGIAO.py: Attack_Graph_Interpretability_Analysis_and_Simplification 
+    AGIAS.py: Attack_Graph_Interpretability_Analysis_and_Simplification 
         
         Quick tool to analyse attack graphs's interpretability.
         Generate alternatives maximising interpretability while minimising the context loss.
