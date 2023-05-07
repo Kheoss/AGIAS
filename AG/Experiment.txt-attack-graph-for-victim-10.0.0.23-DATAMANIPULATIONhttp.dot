@@ -1,0 +1,147 @@
+digraph DATAMANIPULATIONhttp {
+rankdir="BT"; 
+ graph [ nodesep="0.1", ranksep="0.02"] 
+ node [ fontname=Arial, fontsize=24,penwidth=3]; 
+ edge [ fontname=Arial, fontsize=20,penwidth=5 ];
+"Victim: 10.0.0.23
+DATA MANIPULATION
+http" [shape=doubleoctagon, style=filled, fillcolor=salmon];
+{ rank = max; "Victim: 10.0.0.23
+DATA MANIPULATION
+http"}
+"DATA MANIPULATION
+http | ID: 13" -> "Victim: 10.0.0.23
+DATA MANIPULATION
+http"
+"DATA MANIPULATION
+http | ID: 13" [style=filled, fillcolor= salmon]
+{ rank=same; "DATA MANIPULATION
+http | ID: 13"}
+"HOST DISCOVERY
+http" [style=filled, fillcolor= yellow]
+"HOST DISCOVERY
+http" -> "VULNERABILTY DISCOVERY
+ms-sql-s" [ color=maroon] [label=<<font color="maroon"> start_next: 03/11/18, 14:52:49<br/>gap: 4sec<br/>end_prev: 03/11/18, 14:52:45</font><br/><font color="maroon"><b>Attacker: 10.0.254.201</b></font>>]
+"VULNERABILTY DISCOVERY
+ms-sql-s" -> "INFO DISCOVERY
+http" [ label="start_next: 03/11/18, 14:52:49
+gap: -313sec
+end_prev: 03/11/18, 14:58:02"][ fontcolor="maroon" color=maroon]
+"INFO DISCOVERY
+http" -> "DATA EXFILTRATION
+http | ID: 12" [ label="start_next: 03/11/18, 14:52:50
+gap: -24sec
+end_prev: 03/11/18, 14:53:13"][ fontcolor="maroon" color=maroon]
+"DATA EXFILTRATION
+http | ID: 12" -> "ARBITRARY CODE EXECUTION
+http | ID: 97" [ label="start_next: 03/11/18, 14:52:51
+gap: -22sec
+end_prev: 03/11/18, 14:53:13"][ fontcolor="maroon" color=maroon]
+"ARBITRARY CODE EXECUTION
+http | ID: 97" -> "ROOT PRIVILEGE ESCALATION
+http | ID: 51" [ label="start_next: 03/11/18, 14:52:52
+gap: -21sec
+end_prev: 03/11/18, 14:53:13"][ fontcolor="maroon" color=maroon]
+"ROOT PRIVILEGE ESCALATION
+http | ID: 51" -> "DATA MANIPULATION
+http | ID: 13" [ label="start_next: 03/11/18, 14:52:53
+gap: -8sec
+end_prev: 03/11/18, 14:53:02"][ fontcolor="maroon" color=maroon]
+"HOST DISCOVERY
+http" [shape=oval]
+"HOST DISCOVERY
+http" [tooltip="ET SCAN Possible Nmap User-Agent Observed
+ET SCAN Nmap Scripting Engine User-Agent Detected (Nmap Scripting Engine)"]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [shape=oval]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [tooltip="ET SCAN Suspicious inbound to Oracle SQL port 1521
+ET SCAN Suspicious inbound to MSSQL port 1433
+ET SCAN Suspicious inbound to mySQL port 3306
+ET SCAN Nikto Web App Scan in Progress
+ET SCAN Suspicious inbound to PostgreSQL port 5432
+ET SCAN Suspicious inbound to mSQL port 4333"]
+"INFO DISCOVERY
+http" [shape=oval]
+"INFO DISCOVERY
+http" [tooltip="GPL WEB_SERVER iisadmin access
+GPL WEB_SERVER printenv access
+GPL WEB_SERVER author.exe access
+ET WEB_SERVER PHP Easteregg Information-Disclosure (phpinfo)
+ET WEB_SERVER PHP Easteregg Information-Disclosure (funny-logo)
+GPL WEB_SERVER globals.pl access
+GPL WEB_SERVER viewcode access
+ET WEB_SPECIFIC_APPS Request to Wordpress W3TC Plug-in dbcache Directory
+GPL EXPLOIT ISAPI .idq attempt
+ET POLICY Proxy TRACE Request - inbound
+GPL WEB_SERVER /~root access
+GPL WEB_SERVER service.pwd
+ET WEB_SERVER PHP REQUEST SuperGlobal in URI
+ET WEB_SERVER PHP Easteregg Information-Disclosure (php-logo)
+GPL WEB_SERVER services.cnf access
+GPL EXPLOIT unicode directory traversal attempt
+GPL EXPLOIT .htr access
+GPL EXPLOIT .cnf access
+ET WEB_SERVER PHP SERVER SuperGlobal in URI
+GPL WEB_SERVER .htaccess access
+GPL EXPLOIT iisadmpwd attempt
+GPL WEB_SERVER service.cnf access
+GPL WEB_SERVER global.asa access
+GPL EXPLOIT fpcount access
+GPL WEB_SERVER .htpasswd access
+GPL WEB_SERVER 403 Forbidden
+ET WEB_SERVER PHP SESSION SuperGlobal in URI
+GPL WEB_SERVER writeto.cnf access
+GPL EXPLOIT iissamples access
+ET WEB_SERVER PHP Easteregg Information-Disclosure (zend-logo)
+ET WEB_SERVER PHP ENV SuperGlobal in URI
+GPL WEB_SERVER authors.pwd access"]
+"DATA EXFILTRATION
+http | ID: 12" [shape=hexagon]
+"DATA EXFILTRATION
+http | ID: 12" [tooltip="ET WEB_SERVER Possible XXE SYSTEM ENTITY in POST BODY.
+GPL EXPLOIT ISAPI .ida access
+ET WEB_SERVER /system32/ in Uri - Possible Protected Directory Access Attempt
+GPL WEB_SERVER Tomcat server snoop access
+ET WEB_SERVER ColdFusion componentutils access
+GPL EXPLOIT /msadc/samples/ access
+ET WEB_SPECIFIC_APPS PHP-CGI query string parameter vulnerability
+GPL EXPLOIT ISAPI .idq access
+ET WEB_SERVER /etc/shadow Detected in URI"]
+"ARBITRARY CODE EXECUTION
+http | ID: 97" [shape=box]
+"ARBITRARY CODE EXECUTION
+http | ID: 97" [tooltip="ET WEB_SERVER Possible CVE-2014-6271 Attempt
+ET WEB_SPECIFIC_APPS WEB-PHP RCE PHPBB 2004-1315
+ET WEB_SPECIFIC_APPS Golem Gaming Portal root_path Parameter Remote File inclusion Attempt
+ET WEB_SPECIFIC_APPS Joomla swMenuPro ImageManager.php Remote File Inclusion Attempt
+ETPRO WEB_SPECIFIC_APPS PHPMoAdmin RCE Attempt
+ET WEB_SERVER cmd.exe In URI - Possible Command Execution Attempt
+ET WEB_SERVER Exploit Suspected PHP Injection Attack (cmd=)
+ET WEB_SPECIFIC_APPS FormMailer formmailer.admin.inc.php BASE_DIR Parameter Remote File Inclusion Attempt
+ET WEB_SPECIFIC_APPS DesktopOnNet don3_requiem.php app_path Parameter Remote File Inclusion
+ET WEB_SPECIFIC_APPS Joomla Dada Mail Manager Component config.dadamail.php GLOBALS Parameter Remote File Inclusion
+ET WEB_SERVER Possible CVE-2014-6271 Attempt in Headers
+ET WEB_SPECIFIC_APPS Achievo debugger.php config_atkroot parameter Remote File Inclusion Attempt
+ET CURRENT_EVENTS QNAP Shellshock CVE-2014-6271
+ET WEB_SPECIFIC_APPS KingCMS menu.php CONFIG Parameter Remote File Inclusion
+ET WEB_SPECIFIC_APPS AjaxPortal di.php pathtoserverdata Parameter Remote File Inclusion Attempt
+ET WEB_SPECIFIC_APPS BASE base_stat_common.php remote file include
+ET WEB_SPECIFIC_APPS DesktopOnNet frontpage.php app_path Parameter Remote File Inclusion
+ET WEB_SPECIFIC_APPS KR-Web krgourl.php DOCUMENT_ROOT Parameter Remote File Inclusion Attempt
+ET WEB_SPECIFIC_APPS Joomla AjaxChat Component ajcuser.php GLOBALS Parameter Remote File Inclusion Attempt
+ET WEB_SPECIFIC_APPS Horde type Parameter Local File Inclusion Attempt"]
+"ROOT PRIVILEGE ESCALATION
+http | ID: 51" [shape=box]
+"ROOT PRIVILEGE ESCALATION
+http | ID: 51" [tooltip="GPL EXPLOIT CodeRed v2 root.exe access
+ET WEB_SERVER ColdFusion administrator access
+ETPRO WEB_SPECIFIC_APPS ipTIME firmware < 9.58 RCE
+GPL EXPLOIT administrators.pwd access"]
+"DATA MANIPULATION
+http | ID: 13" [shape=hexagon]
+"DATA MANIPULATION
+http | ID: 13" [tooltip="ET WEB_SERVER Possible SQL Injection Attempt UNION SELECT
+ET WEB_SERVER Possible SQL Injection Attempt SELECT FROM
+ET WEB_SERVER MYSQL SELECT CONCAT SQL Injection Attempt"]
+}

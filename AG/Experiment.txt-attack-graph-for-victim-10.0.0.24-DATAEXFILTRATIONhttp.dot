@@ -1,0 +1,80 @@
+digraph DATAEXFILTRATIONhttp {
+rankdir="BT"; 
+ graph [ nodesep="0.1", ranksep="0.02"] 
+ node [ fontname=Arial, fontsize=24,penwidth=3]; 
+ edge [ fontname=Arial, fontsize=20,penwidth=5 ];
+"Victim: 10.0.0.24
+DATA EXFILTRATION
+http" [shape=doubleoctagon, style=filled, fillcolor=salmon];
+{ rank = max; "Victim: 10.0.0.24
+DATA EXFILTRATION
+http"}
+"DATA EXFILTRATION
+http | ID: 12" -> "Victim: 10.0.0.24
+DATA EXFILTRATION
+http"
+"DATA EXFILTRATION
+http | ID: 12" [style=filled, fillcolor= salmon]
+{ rank=same; "DATA EXFILTRATION
+http | ID: 12"}
+"HOST DISCOVERY
+http" [style=filled, fillcolor= yellow]
+"HOST DISCOVERY
+http" -> "VULNERABILTY DISCOVERY
+ms-sql-s" [ color=maroon] [label=<<font color="maroon"> start_next: 03/11/18, 14:52:49<br/>gap: 3sec<br/>end_prev: 03/11/18, 14:52:45</font><br/><font color="maroon"><b>Attacker: 10.0.254.201</b></font>>]
+"VULNERABILTY DISCOVERY
+ms-sql-s" -> "INFO DISCOVERY
+http" [ label="start_next: 03/11/18, 14:52:49
+gap: -313sec
+end_prev: 03/11/18, 14:58:02"][ fontcolor="maroon" color=maroon]
+"INFO DISCOVERY
+http" -> "DATA EXFILTRATION
+http | ID: 12" [ label="start_next: 03/11/18, 14:52:49
+gap: -3sec
+end_prev: 03/11/18, 14:52:51"][ fontcolor="maroon" color=maroon]
+"HOST DISCOVERY
+http" [style=filled, fillcolor= yellow]
+"HOST DISCOVERY
+http" -> "VULNERABILTY DISCOVERY
+ms-sql-s" [ color=maroon] [label=<<font color="maroon"> start_next: 03/11/18, 17:37:53<br/>gap: 5sec<br/>end_prev: 03/11/18, 17:37:48</font><br/><font color="maroon"><b>Attacker: 10.0.254.204</b></font>>]
+"VULNERABILTY DISCOVERY
+ms-sql-s" -> "INFO DISCOVERY
+http" [ label="start_next: 03/11/18, 17:37:53
+gap: -292sec
+end_prev: 03/11/18, 17:42:44"][ fontcolor="maroon" color=maroon]
+"INFO DISCOVERY
+http" -> "DATA EXFILTRATION
+http | ID: 12" [ label="start_next: 03/11/18, 17:37:54
+gap: -3sec
+end_prev: 03/11/18, 17:37:57"][ fontcolor="maroon" color=maroon]
+"HOST DISCOVERY
+http" [shape=oval]
+"HOST DISCOVERY
+http" [tooltip="ET SCAN Possible Nmap User-Agent Observed
+ET SCAN Nmap Scripting Engine User-Agent Detected (Nmap Scripting Engine)"]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [shape=oval]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [tooltip="ET SCAN Suspicious inbound to Oracle SQL port 1521
+ET SCAN Suspicious inbound to MSSQL port 1433
+ET SCAN Suspicious inbound to mySQL port 3306
+ET SCAN Nikto Web App Scan in Progress
+ET SCAN Suspicious inbound to PostgreSQL port 5432
+ET SCAN Suspicious inbound to mSQL port 4333"]
+"INFO DISCOVERY
+http" [shape=oval]
+"INFO DISCOVERY
+http" [tooltip="GPL EXPLOIT .cnf access
+GPL WEB_SERVER iisadmin access
+GPL WEB_SERVER .htpasswd access
+GPL WEB_SERVER printenv access
+GPL WEB_SERVER .htaccess access
+ET POLICY Proxy TRACE Request - inbound
+GPL WEB_SERVER /~root access
+GPL EXPLOIT .htr access"]
+"DATA EXFILTRATION
+http | ID: 12" [shape=hexagon]
+"DATA EXFILTRATION
+http | ID: 12" [tooltip="GPL EXPLOIT ISAPI .ida access
+GPL EXPLOIT ISAPI .idq access"]
+}

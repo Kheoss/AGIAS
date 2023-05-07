@@ -1,0 +1,80 @@
+digraph DATAEXFILTRATIONhttp {
+rankdir="BT"; 
+ graph [ nodesep="0.1", ranksep="0.02"] 
+ node [ fontname=Arial, fontsize=24,penwidth=3]; 
+ edge [ fontname=Arial, fontsize=20,penwidth=5 ];
+"Victim: 10.0.1.40
+DATA EXFILTRATION
+http" [shape=doubleoctagon, style=filled, fillcolor=salmon];
+{ rank = max; "Victim: 10.0.1.40
+DATA EXFILTRATION
+http"}
+"DATA EXFILTRATION
+http | ID: 12" -> "Victim: 10.0.1.40
+DATA EXFILTRATION
+http"
+"DATA EXFILTRATION
+http | ID: 12" [style=filled, fillcolor= salmon]
+{ rank=same; "DATA EXFILTRATION
+http | ID: 12"}
+"VULNERABILTY DISCOVERY
+ms-sql-s" [style=filled, fillcolor= yellow]
+"VULNERABILTY DISCOVERY
+ms-sql-s" -> "SERVICE DISCOVERY
+unknown" [ color=maroon] [label=<<font color="maroon"> start_next: 03/11/18, 17:42:35<br/>gap: -10sec<br/>end_prev: 03/11/18, 17:42:44</font><br/><font color="maroon"><b>Attacker: 10.0.254.204</b></font>>]
+"SERVICE DISCOVERY
+unknown" -> "VULNERABILTY DISCOVERY
+http" [ label="start_next: 03/11/18, 22:30:13
+gap: 17172sec
+end_prev: 03/11/18, 17:44:01"][ fontcolor="maroon" color=maroon]
+"VULNERABILTY DISCOVERY
+http" -> "HOST DISCOVERY
+http" [ label="start_next: 03/11/18, 22:31:03
+gap: -49sec
+end_prev: 03/11/18, 22:31:52"][ fontcolor="maroon" color=maroon]
+"HOST DISCOVERY
+http" -> "DATA EXFILTRATION
+http | ID: 12" [ label="start_next: 03/11/18, 22:31:05
+gap: 2sec
+end_prev: 03/11/18, 22:31:03"][ fontcolor="maroon" color=maroon]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [shape=oval]
+"VULNERABILTY DISCOVERY
+ms-sql-s" [tooltip="ET SCAN Suspicious inbound to Oracle SQL port 1521
+ET SCAN Suspicious inbound to MSSQL port 1433
+ET SCAN Suspicious inbound to mySQL port 3306
+ET SCAN Suspicious inbound to PostgreSQL port 5432
+ET SCAN Suspicious inbound to mSQL port 4333"]
+"SERVICE DISCOVERY
+unknown" [shape=oval]
+"SERVICE DISCOVERY
+unknown" [tooltip="ET SCAN Potential VNC Scan 5800-5820
+ET SCAN Potential VNC Scan 5900-5920"]
+"VULNERABILTY DISCOVERY
+http" [shape=oval]
+"VULNERABILTY DISCOVERY
+http" [tooltip="ET SCAN Suspicious inbound to Oracle SQL port 1521
+ET SCAN NMAP SIP Version Detect OPTIONS Scan
+ET SCAN Suspicious inbound to MSSQL port 1433
+ET SCAN Suspicious inbound to mySQL port 3306
+ET SCAN Nikto Web App Scan in Progress
+ET SCAN Suspicious inbound to PostgreSQL port 5432
+ET SCAN Suspicious inbound to mSQL port 4333"]
+"HOST DISCOVERY
+http" [shape=oval]
+"HOST DISCOVERY
+http" [tooltip="ET SCAN Possible Nmap User-Agent Observed
+ET SCAN Nmap Scripting Engine User-Agent Detected (Nmap Scripting Engine)"]
+"DATA EXFILTRATION
+http | ID: 12" [shape=hexagon]
+"DATA EXFILTRATION
+http | ID: 12" [tooltip="ET WEB_SERVER Possible XXE SYSTEM ENTITY in POST BODY.
+GPL EXPLOIT ISAPI .ida access
+ET WEB_SERVER /system32/ in Uri - Possible Protected Directory Access Attempt
+GPL WEB_SERVER Tomcat server snoop access
+ET WEB_SERVER ColdFusion componentutils access
+GPL EXPLOIT /msadc/samples/ access
+ET WEB_SPECIFIC_APPS PHP-CGI query string parameter vulnerability
+GPL EXPLOIT ISAPI .idq access
+ET WEB_SERVER /etc/shadow Detected in URI"]
+}
