@@ -49,10 +49,11 @@ class Node:
         distinct alert signatures: {len(self._alert_signatures)})" 
 
 class Edge:
-    def __init__(self, from_node, to_node, label:dict):
+    def __init__(self, from_node, to_node, label:dict, team):
         self._from = from_node
         self._to = to_node
         self._label = label
+        self._team = team                                               # color of the team
 
     
     def __str__(self):
@@ -71,7 +72,7 @@ class Graph:
         graph = pydot.Dot(graph_type='digraph')
         for node in self._nodes:
             for edge in node._outgoing_edges:
-                graph.add_edge(pydot.Edge(edge._from._label, edge._to._label, label=str(edge._label)))
+                graph.add_edge(pydot.Edge(edge._from._label, edge._to._label, label=str(edge._label), color=edge._team))
                 
         graph.write_png("out.png")
 
@@ -109,12 +110,15 @@ class DotParser:
             for _x in graph[e[0]][e[1]]:
                 ed = graph[e[0]][e[1]][_x]
                 edge = None
+                team = "black"
+                if 'color' in ed:
+                    team = ed['color']
                 if 'label' in ed:
                     labelData = self._labelDataParser.parse_data(ed['label'])
-                    edge = Edge(node_map[e[0]], node_map[e[1]], labelData)
+                    edge = Edge(node_map[e[0]], node_map[e[1]], labelData, team)
                 else:
                     node_map[e[1]].set_is_sink(True)                        # No edge data to him, so it is a sink
-                    edge = Edge(node_map[e[0]], node_map[e[1]], {})
+                    edge = Edge(node_map[e[0]], node_map[e[1]], {}, team)
                     
                 node_map[e[0]].add_outgoing_edge(edge)
                 node_map[e[1]].add_ingoing_edge(edge)
@@ -128,6 +132,6 @@ class DotParser:
 #MAIN
 
 # parser = DotParser(SAGEDataLabelParser())
-# graph = parser.parseFromFile("AG/ag1.dot")
+# graph = parser.parseFromFile("AG_2018/ag1.dot")
 
 # graph.exportAsDot()
