@@ -69,15 +69,42 @@ class Graph:
         self._source_states = source_states
         self._sink_states = sink_states
         self._teams = teams
+        self._chunks = []
 
 
-    def exportAsDot(self):
+    def exportAsDot(self, name):
         graph = pydot.Dot(graph_type='digraph')
         for node in self._nodes:
             for edge in node._outgoing_edges:
                 graph.add_edge(pydot.Edge(edge._from._label, edge._to._label, label=str(edge._label), color=edge._team))
                 
-        graph.write_png("out.png")
+        graph.write_png(f"ResultedAGs/{name}.png")
+
+    def exportAsDotPerChunks(self, name, chunks):
+        # colors 
+        colors = ["peru", "navyblue", "olive", "olivedrab1",
+        "turquoise","orangered1","orchid1","palegreen","paleturquoise","palevioletred","papayawhip","pink"
+        ,"plum3","purple2","salmon","seagreen4","tan2","violet","turquoise","webpurple","yellow","plum","gray1","fuchsia","dodgerblue2"]
+
+        # assign colors to each chunk
+        color_index = 0
+        chunk_color_assignment = dict()
+        for chunk in chunks:
+            if chunk_color_assignment.get(chunk) is None:
+                chunk_color_assignment.update({chunk: colors[color_index]})
+                color_index += 1
+
+        graph = pydot.Dot(graph_type='digraph')
+        for node in self._nodes:
+            node_color = chunk_color_assignment.get(chunks[node._id])
+            # if len([n for n in self._sink_states if n._id == node._id]) > 0:
+            #     node_color = "white"
+            graph.add_node(pydot.Node(node._id, style='filled', fillcolor=node_color, label=node._label))
+        for node in self._nodes:
+            for edge in node._outgoing_edges:
+                graph.add_edge(pydot.Edge(edge._from._id, edge._to._id, label=str(edge._label), color=edge._team))
+                
+        graph.write_png(f"ResultedAGs/{name}_chunks.png")
 
     def analysePatterns(self, oldResults):
         results = oldResults
@@ -93,6 +120,112 @@ class Graph:
                     results[node._type] = {edge._to._type: 1}
         return results
     
+    def splitIntoCognitiveChunks(self, patterns):
+        # sort patterns
+        patterns.sort(key=lambda t: t._value, reverse=True)
+
+        node_chunk = [node._id for node in self._nodes]
+        node_assigned = [False for _ in range(len(self._nodes))]
+
+        for pattern in patterns:
+            # search for pattern
+            for node in self._nodes:
+                if node._type == pattern._from:
+                    # search for end of pattern
+                    for edge in node._outgoing_edges:
+                        if edge._to._type == pattern._to and node_assigned[edge._to._id] == False:
+                            node_assigned[edge._to._id] = True
+                            chunk_to_merge = node_chunk[edge._to._id]
+                            
+                            # merge all chunk to the smaller chunk
+                            # TO DO: Change the algorithm to also implement path compression? Investigate
+                            for ind in range(len(node_chunk)):
+                                if node_chunk[ind] == chunk_to_merge:
+                                    node_chunk[ind] = node_chunk[node._id]
+                            break
+        self._chunks = node_chunk
+        return node_chunk
+ 
+    # create graph only with nodes inside one chunk         
+    def subgraphByChunk(self, chunk_allocation, chunk):
+        new_nodes = {}
+        for node in self._nodes:
+            if chunk_allocation[node._id] == chunk:
+                new_nodes.update({node._id: Node(id=node._id, label=node._label, alert_signatures=node._alert_signatures, attack_type=node._type)})
+
+        for node in self._nodes:
+            if chunk_allocation[node._id] == chunk:
+                for edge in node._outgoing_edges:
+                    if chunk_allocation[edge._to._id] == chunk:
+                        # add edge from node to edge._to
+                        e = Edge(new_nodes.get(node._id), new_nodes.get(edge._to._id), edge._label, edge._team)
+                        new_nodes.get(node._id).add_outgoing_edge(e)  
+                    # def __init__(self, id, label, alert_signatures, attack_type):
+                    # def __init__(self, from_node, to_node, label:dict, team):
+                    # def __init__(self, nodes, source_states, sink_states, teams):
+
+        graph_nodes = [new_nodes.get(key) for key in new_nodes]
+        return Graph(graph_nodes, [], [], self._teams)
+
+    def calculateBetweennessCentrality(self):
+        # put the graph into an nx friendly form
+        nx_graph = nx.Graph()
+        nx_graph.add_nodes_from([n._id for n in self._nodes])
+
+        for node in self._nodes:
+            for edge in node._outgoing_edges:
+                nx_graph.add_edge(node._id, edge._to._id)
+
+        betweenness = nx.betweenness_centrality(nx_graph)
+        
+        return betweenness
+
+    def calculateInterdependencyPerChunk(self, chunk_allocation, VERBOSE=False):
+        chunks = set(chunk_allocation)
+        index = 0
+        average_interdependency_among_chunks = 0
+        for chunk in chunks:
+            chunk_graph = self.subgraphByChunk(chunk_allocation, chunk)
+
+            # calculate betweeness centrality
+            betweeness = chunk_graph.calculateBetweennessCentrality()
+
+            # find max of betweeness
+            max_betweeness = max(betweeness.values())
+            # find key nodes
+            key_nodes = [n for n in chunk_graph._nodes if betweeness.get(n._id) == max_betweeness]
+            if VERBOSE:
+                print(f"________________________Chunk:{chunk}_________________________")
+                print(f"Number of nodes: {len(chunk_graph._nodes)}")
+                print("Key nodes:")
+                for n in key_nodes:
+                    print(n)
+
+            # 1 node => full interdependency
+            if len(chunk_graph._nodes) == 1:
+                average_interdependency_among_chunks += 1
+                if VERBOSE:
+                    print(f"Interdependency: 1")
+                continue
+
+            # calculate interdependency as average of interconectivity between the key_nodes and the other nodes in the group\
+            teams_in_graph = dict()
+            for n in chunk_graph._nodes:
+                for e in n._outgoing_edges:
+                    teams_in_graph.update({e._team: True})
+            average_interdependency = 0
+            for n in key_nodes:
+                average_interdependency += len(n._outgoing_edges) / ((len(chunk_graph._nodes)-1) * len(teams_in_graph)) 
+
+            average_interdependency /= len(key_nodes)
+            average_interdependency_among_chunks += average_interdependency
+            if VERBOSE:
+                print(f"Interdependency: {average_interdependency}")
+
+        average_interdependency_among_chunks /= len(chunks)
+        return average_interdependency_among_chunks
+
+
     def __str__(self):
         return f"Graph(nr nodes:{len(self._nodes)}, \
         nr source states:{len(self._source_states)}, \
@@ -148,6 +281,8 @@ class DotParser:
         sink_states = [node_map[_x] for _x in node_map if len(node_map[_x]._outgoing_edges)==0]
 
         return Graph(nodes, source_states, sink_states, teams)
+
+
 #MAIN
 
 # parser = DotParser(SAGEDataLabelParser())
