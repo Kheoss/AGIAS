@@ -54,7 +54,7 @@ for line in lines:
 
 with open('PatternsWithBetweennessResults_2018.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability"])
+    writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability", "GraphNodeNo", "GraphEdgeNo"])
 
     for file in os.listdir('AG_2018/ExperimentAGs'):
         if file.endswith('.dot'):
@@ -62,8 +62,6 @@ with open('PatternsWithBetweennessResults_2018.csv', 'w', newline='') as csvfile
             graph = parser.parseFromFile("AG_2018/ExperimentAGs/" + file)
 
             chunks = graph.splitIntoCognitiveChunks(patterns)
-            # print(chunks)
-            # interd = graph.calculateInterdependencyPerChunk(chunks)
             interdependency = graph.calculateInterdependencyPerChunk(chunks)
 
             # calculate explainability 
@@ -74,7 +72,12 @@ with open('PatternsWithBetweennessResults_2018.csv', 'w', newline='') as csvfile
             print(f"Number of chunks: {chunks_number}")
             print(f"Interdependency: {interdependency}")
             print(f"Explainability: {explainability}")
-            writer.writerow([total_graphs, chunks_number, interdependency, explainability])
+            edges_number = 0
+            for n in graph._nodes:
+                edges_number += len(n._outgoing_edges)
+
+            writer.writerow([total_graphs, chunks_number, interdependency, explainability, len(graph._nodes), edges_number])
+            
             graph.exportAsDot(str(total_graphs))
             graph.exportAsDotPerChunks(str(total_graphs), chunks)
             # break
