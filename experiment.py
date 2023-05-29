@@ -43,7 +43,7 @@ class Touple:
 
 patterns = []
 #load patterns
-file1 = open('patterns_2018.csv', 'r')
+file1 = open('patterns_2017.csv', 'r')
 lines = file1.readlines()
 count = 0
 for line in lines:
@@ -52,38 +52,38 @@ for line in lines:
         patterns.append(Touple(parts[0], parts[1], float(parts[2])))
     count += 1
 
-with open('PatternsWithBetweennessResults_2018.csv', 'w', newline='') as csvfile:
+with open('ChunkInPathsResult_2017_2.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability", "GraphNodeNo", "GraphEdgeNo"])
+    # writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability", "GraphNodeNo", "GraphEdgeNo"])
 
-    for file in os.listdir('AG_2018/ExperimentAGs'):
+    for file in os.listdir('AG_2017/ExperimentAGs'):
         if file.endswith('.dot'):
             total_graphs += 1
-            graph = parser.parseFromFile("AG_2018/ExperimentAGs/" + file)
+            if total_graphs <= 100: 
+                continue
+            graph = parser.parseFromFile("AG_2017/ExperimentAGs/" + file)
 
             chunks = graph.splitIntoCognitiveChunks(patterns)
-            interdependency = graph.calculateInterdependencyPerChunk(chunks)
-
-            # calculate explainability 
-            chunks_number = len(set(chunks))
-            explainability = 1/chunks_number + (1-interdependency)
-            
-            print(f"_______________________________Graph:{total_graphs}_______________________________")
-            print(f"Number of chunks: {chunks_number}")
-            print(f"Interdependency: {interdependency}")
-            print(f"Explainability: {explainability}")
-            edges_number = 0
-            for n in graph._nodes:
-                edges_number += len(n._outgoing_edges)
-
-            writer.writerow([total_graphs, chunks_number, interdependency, explainability, len(graph._nodes), edges_number])
-            
-            graph.exportAsDot(str(total_graphs))
+            chunk_areas = graph.analyseChunksInPaths(chunks)
+            writer.writerow(chunk_areas)
             graph.exportAsDotPerChunks(str(total_graphs), chunks)
             # break
+            # interdependency = graph.calculateInterdependencyPerChunk(chunks)
 
+            # # calculate explainability 
+            # chunks_number = len(set(chunks))
+            # explainability = 1/chunks_number + (1-interdependency)
+            
+            print(f"_______________________________Graph:{total_graphs}_______________________________")
+            # print(f"Number of chunks: {chunks_number}")
+            # print(f"Interdependency: {interdependency}")
+            # print(f"Explainability: {explainability}")
+            # edges_number = 0
+            # for n in graph._nodes:
+            #     edges_number += len(n._outgoing_edges)
 
-# TO DO :
-# [ ] Find multiple ways to calculate interdependency
-# [ ] Find multiple ways of chuncking
-# 
+            # writer.writerow([total_graphs, chunks_number, interdependency, explainability, len(graph._nodes), edges_number])
+            
+            # graph.exportAsDot(str(total_graphs))
+            # graph.exportAsDotPerChunks(str(total_graphs), chunks)
+            # break

@@ -55,7 +55,6 @@ class Edge:
         self._to = to_node
         self._label = label
         self._team = team                                               # color of the team
-
     
     def __str__(self):
         return f"Edge(from:{self._from._label}, \
@@ -70,6 +69,7 @@ class Graph:
         self._sink_states = sink_states
         self._teams = teams
         self._chunks = []
+        self.graph_paths = []
 
 
     def exportAsDot(self, name):
@@ -225,6 +225,66 @@ class Graph:
         average_interdependency_among_chunks /= len(chunks)
         return average_interdependency_among_chunks
 
+    def toNXNetworkFlowFormat(self):
+        source = Node(-1, dict(), None, "source")
+        sink = Node(-2, dict(), None, "sink")
+        sink.set_is_sink(True)
+
+        nodes = []
+        for node in self._nodes:
+            nodes.add
+        
+        # def __init__(self, id, label, alert_signatures, attack_type):
+        # def __init__(self, from_node, to_node, label:dict, team):
+        # def __init__(self, nodes, source_states, sink_states, teams):
+
+    def findPath(self, chunk_allocation, visited, current_node, team):
+        visited[current_node._id] = True
+        if len([n for n in self._sink_states if n._id == current_node._id]) > 0:
+            # analyse how much of this path was on a single chunk allocation
+            chunk_count = dict()
+            for chunk in set(chunk_allocation):
+                chunk_count.update({chunk: 0})
+
+            for node in self._nodes:
+                if visited[node._id]:
+                    ct = chunk_count.get(chunk_allocation[node._id])
+                    chunk_count.update({chunk_allocation[node._id]: ct+1})
+            path_length = 0
+            for cnk in chunk_count:
+                path_length += chunk_count.get(cnk)
+
+            self.graph_paths.append([chunk_count.get(cnk)/path_length for cnk in chunk_count])
+
+            visited[current_node._id] = False
+            return    
+        for edge in current_node._outgoing_edges:
+            if (edge._team != team and not edge._to._is_sink) or visited[edge._to._id]:
+                continue
+            self.findPath(chunk_allocation, visited, edge._to, team)
+            
+        visited[current_node._id] = False
+
+    # returns the area ocupied by different chunks in all possible paths
+    def analyseChunksInPaths(self, chunk_allocation):
+        for team in self._teams:
+            for source in self._source_states:
+                visited = [False for n in self._nodes]
+                self.findPath(chunk_allocation, visited, source, team)
+        
+        paths_number = 1
+        result = [0 for ck in set(chunk_allocation)]
+        if len(self.graph_paths) > 0:
+            paths_number = len(self.graph_paths)
+        for row in range(len(self.graph_paths)):
+            for index, val in enumerate(self.graph_paths[row]):
+                result[index] += val
+        
+        for ind in range(len(result)):
+            result[ind] /= paths_number
+        return result
+
+  
 
     def __str__(self):
         return f"Graph(nr nodes:{len(self._nodes)}, \
@@ -234,6 +294,17 @@ class Graph:
 class DotParser:
     def __init__(self, labelDataParser:DataLabelParserInterface):
         self._labelDataParser = labelDataParser
+
+    def allEdgesLoop(self, node):
+        if len(node._ingoing_edges) == 0:
+            return True
+
+        # check if all ingoing edges are loop edges
+        for edge in node._ingoing_edges:
+            if edge._from._id != node._id:
+                return False
+
+        return True
 
     def parseFromFile(self, path) -> Graph:
         """Parse a .dot file"""
@@ -277,7 +348,7 @@ class DotParser:
                 node_map[e[1]].add_ingoing_edge(edge)
                 
         nodes = [node_map[_x] for _x in node_map]
-        source_states = [node_map[_x] for _x in node_map if len(node_map[_x]._ingoing_edges)==0]
+        source_states = [node_map[_x] for _x in node_map if self.allEdgesLoop(node_map[_x]) ]
         sink_states = [node_map[_x] for _x in node_map if len(node_map[_x]._outgoing_edges)==0]
 
         return Graph(nodes, source_states, sink_states, teams)
