@@ -52,38 +52,34 @@ for line in lines:
         patterns.append(Touple(parts[0], parts[1], float(parts[2])))
     count += 1
 
-with open('ChunkInPathsResult_2017_2.csv', 'w', newline='') as csvfile:
+with open('ExplainabilityWithMonotonicity_2017.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    # writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability", "GraphNodeNo", "GraphEdgeNo"])
+    writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability", "GraphNodeNo", "GraphEdgeNo", "Monotonicity"])
 
     for file in os.listdir('AG_2017/ExperimentAGs'):
         if file.endswith('.dot'):
             total_graphs += 1
-            if total_graphs <= 100: 
-                continue
             graph = parser.parseFromFile("AG_2017/ExperimentAGs/" + file)
 
             chunks = graph.splitIntoCognitiveChunks(patterns)
-            chunk_areas = graph.analyseChunksInPaths(chunks)
-            writer.writerow(chunk_areas)
-            graph.exportAsDotPerChunks(str(total_graphs), chunks)
-            # break
-            # interdependency = graph.calculateInterdependencyPerChunk(chunks)
-
-            # # calculate explainability 
-            # chunks_number = len(set(chunks))
-            # explainability = 1/chunks_number + (1-interdependency)
+            interdependency = graph.calculateInterdependencyPerChunk(chunks)
+            # radial_spread = graph.calculateRadialSpread()
+            monotonicity = graph.calculateMonotonicity()
+            # calculate explainability 
+            chunks_number = len(set(chunks))
+            explainability = 1/chunks_number + (1-interdependency) + monotonicity
             
             print(f"_______________________________Graph:{total_graphs}_______________________________")
-            # print(f"Number of chunks: {chunks_number}")
-            # print(f"Interdependency: {interdependency}")
-            # print(f"Explainability: {explainability}")
-            # edges_number = 0
-            # for n in graph._nodes:
-            #     edges_number += len(n._outgoing_edges)
+            print(f"Number of chunks: {chunks_number}")
+            print(f"Interdependency: {interdependency}")
+            print(f"Monotonicity: {monotonicity}")
+            print(f"Explainability: {explainability}")
+            edges_number = 0
+            for n in graph._nodes:
+                edges_number += len(n._outgoing_edges)
 
-            # writer.writerow([total_graphs, chunks_number, interdependency, explainability, len(graph._nodes), edges_number])
+            writer.writerow([total_graphs, chunks_number, interdependency, explainability, len(graph._nodes), edges_number, monotonicity])
             
-            # graph.exportAsDot(str(total_graphs))
-            # graph.exportAsDotPerChunks(str(total_graphs), chunks)
-            # break
+            graph.exportAsDot(str(total_graphs))
+            graph.exportAsDotPerChunks(str(total_graphs), chunks)
+            

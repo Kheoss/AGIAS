@@ -167,18 +167,89 @@ class Graph:
         graph_nodes = [new_nodes.get(key) for key in new_nodes]
         return Graph(graph_nodes, [], [], self._teams)
 
-    def calculateBetweennessCentrality(self):
-        # put the graph into an nx friendly form
+    # put the graph into an nx friendly form
+    def transformToNXGraph(self):
         nx_graph = nx.Graph()
         nx_graph.add_nodes_from([n._id for n in self._nodes])
 
         for node in self._nodes:
             for edge in node._outgoing_edges:
                 nx_graph.add_edge(node._id, edge._to._id)
-
-        betweenness = nx.betweenness_centrality(nx_graph)
         
+        return nx_graph
+
+    # put the graph into an nx friendly undirected form
+    def transformToNXUndirectedGraph(self):
+        nx_graph = nx.Graph()
+        nx_graph.add_nodes_from([n._id for n in self._nodes])
+
+        for node in self._nodes:
+            for edge in node._outgoing_edges:
+                nx_graph.add_edge(node._id, edge._to._id)
+                nx_graph.add_edge(edge._to._id, node._id)
+        
+        return nx_graph
+
+    def calculateBetweennessCentrality(self):
+        nx_graph = self.transformToNXGraph()
+
+        betweenness = nx.betweenness_centrality(nx_graph)    
         return betweenness
+
+    def calculateClosenessCentrality(self):
+        nx_graph = self.transformToNXGraph()
+        closeness = nx.closeness_centrality(nx_graph)
+
+        return closeness
+
+    def getNodeById(self, id):
+        for n in self._nodes:
+            if n._id == id:
+                return n
+
+
+        raise f"Node with ID :{id} not found in node list"
+
+    def calculateMonotonicity(self):
+        average_ratio = 0
+        node_count = 0
+        for node in self._nodes:
+            len_out = len(node._outgoing_edges)
+            len_in = len(node._ingoing_edges)
+            
+            _min = min(len_out, len_in)
+            _max = max(len_out, len_in)
+
+            if _min == 0:
+                continue
+            node_count += 1
+            average_ratio += _min/_max
+
+        average_ratio /= node_count
+
+        return average_ratio
+
+
+    def calculateRadialSpread(self):
+        closeness = self.calculateClosenessCentrality()
+        max_key = None
+        max_val = 0
+        # get the node with the highest closeness centrality
+        central_node_id = max(closeness, key=closeness.get, default=None)
+        central_node = self.getNodeById(central_node_id)
+
+        # calculate distances between all nodes and the central nodes
+        nx_graph = self.transformToNXUndirectedGraph()
+        path_lengths = nx.shortest_path_length(nx_graph, source=central_node_id)
+        
+        # find the furtherst and closest nodes
+        # print(path_lengths)
+        print(central_node)
+        highest_distance = max(path_lengths.values())
+        smallest_distance = min(path_lengths.values())
+
+        # divide the lowest distance to the highest distance and return the oposite
+        return 1 - (smallest_distance/highest_distance)
 
     def calculateInterdependencyPerChunk(self, chunk_allocation, VERBOSE=False):
         chunks = set(chunk_allocation)
@@ -225,14 +296,14 @@ class Graph:
         average_interdependency_among_chunks /= len(chunks)
         return average_interdependency_among_chunks
 
-    def toNXNetworkFlowFormat(self):
-        source = Node(-1, dict(), None, "source")
-        sink = Node(-2, dict(), None, "sink")
-        sink.set_is_sink(True)
+    # def toNXNetworkFlowFormat(self):
+    #     source = Node(-1, dict(), None, "source")
+    #     sink = Node(-2, dict(), None, "sink")
+    #     sink.set_is_sink(True)
 
-        nodes = []
-        for node in self._nodes:
-            nodes.add
+    #     nodes = []
+    #     for node in self._nodes:
+    #         nodes.add
         
         # def __init__(self, id, label, alert_signatures, attack_type):
         # def __init__(self, from_node, to_node, label:dict, team):
