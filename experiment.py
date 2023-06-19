@@ -86,60 +86,47 @@ for line in lines:
     count += 1
 
 
-SAMPLE_SIZE = 10
-GRAPH_SIZE = 30
-EDGE_DENSITY = 0.25
-
-with open(f'Generator_{GRAPH_SIZE}.csv', 'w', newline='') as csvfile:
-    # writer = csv.writer(csvfile)
-    # writer.writerow(["GraphNo", "Size", "Link Density 25%", "Planarity 25%", "Link Density 50%", "Planarity 50%", "Link Density 75%", "Planarity 75%"])
-
-
-    density = 0.1
-    while density < 1:
-        sum_of_planarity = 0
-        print(f"Planarity of density of {density*100}%")
-        for i in range(SAMPLE_SIZE):
-            graph = AGIAS.GraphUtil.generateRandomGraph(GRAPH_SIZE, density) 
-            # link_density_2 = graph.calculateLinkDensity()
-            planarity_2, relative_planarity_2 = graph.calculatePlanarity()
-            sum_of_planarity += planarity_2
-
-        density += 0.1
-        avg_planarity = sum_of_planarity/SAMPLE_SIZE
-        print(avg_planarity)
-
-        # writer.writerow([i, GRAPH_SIZE, link_density_1, planarity_1, link_density_2, planarity_2, link_density_3, planarity_3])
-    
-    # for file in os.listdir('AG_2017/ExperimentAGs'):
-        # if file.endswith('.dot'):
-            # total_graphs += 1
-            # graph = parser.parseFromFile("AG_2017/ExperimentAGs/" + file)
-            # chunks = graph.splitIntoCognitiveChunks(patterns)
-            # interdependency = graph.calculateInterdependencyPerChunkWithClosenessCentrality(chunks)
-            # radial_spread = graph.calculateRadialSpread()
-            # monotonicity = graph.calculateMonotonicity()
-            # calculate explainability 
-            # chunks_number = len(set(chunks))
-            # explainability = 1/chunks_number + (1-interdependency) + monotonicity
-            # explainability = 1/chunks_number + (1-interdependency)
+with open(f'pairwise.csv', 'w', newline='') as csvfile:    
+    explainability_baseline = []
+    explainability = []
+    for file in os.listdir('AG_2017/ExperimentAGs'):
+        if file.endswith('.dot'):
+            total_graphs += 1
+            graph = parser.parseFromFile("AG_2017/ExperimentAGs/" + file)
+            chunks = graph.splitIntoCognitiveChunks(patterns)
+            interdependency = graph.calculateInterdependencyPerChunkWithClosenessCentrality(chunks)
+            radial_spread = graph.calculateRadialSpread()
+            monotonicity = graph.calculateMonotonicity()
+            chunks_number = len(set(chunks))
             
-            # print(f"_______________________________Graph:{total_graphs}_______________________________")
-            # planarity, relative_planarity = graph.calculatePlanarity()
-            # link_density = graph.calculateLinkDensity()
-            # print(f"Planarity:{planarity}")
-            # print(f"Relative-planarity:{relative_planarity}")
-            # print(f"Link-density:{link_density}")
-            # print(f"Number of chunks: {chunks_number}")
-            # print(f"Interdependency: {interdependency}")
-            # # print(f"Monotonicity: {monotonicity}")
-            # print(f"Explainability: {explainability}")
-            # edges_number = 0
-            # for n in graph._nodes:
-            #     edges_number += len(n._outgoing_edges)
+            
+            print(f"_______________________________Graph:{total_graphs}_______________________________")
+            planarity, relative_planarity = graph.calculatePlanarity()
 
-            # writer.writerow([total_graphs, planarity, relative_planarity, link_density])
+            # calculate explainability 
+            base_explainability = (1/chunks_number + (1-interdependency))/2
+            my_explainability = (1/chunks_number + (1-interdependency) + planarity)/3
+            
+            explainability_baseline.append(base_explainability)
+            explainability.append(my_explainability)
 
-            # graph.exportAsDot(str(total_graphs))
-            # graph.exportAsDotPerChunks(str(total_graphs), chunks)
-            # break            
+            graph.exportAsDot(str(total_graphs))
+            graph.exportAsDotPerChunks(str(total_graphs), chunks)
+
+    # start pariwise comparison
+    print("Start pairwise comparison")
+    discrepancies = 0
+    for i in range(len(explainability)):
+        for j in range(len(explainability)):
+            if i == j:
+                continue
+            if explainability[i] > explainability[j] and my_explainability[i] < my_explainability[j]:
+                print(f"Discrepancy found at between graphs:{i} and {j}")
+                discrepancies += 1
+            
+            if explainability[i] < explainability[j] and my_explainability[i] > my_explainability[j]:
+                print(f"Discrepancy found at between graphs:{i} and {j}")
+                discrepancies += 1
+
+
+    print(f"Total number of discrepancies: {discrepancies}")

@@ -235,6 +235,9 @@ class Graph:
                     continue
 
                 nx_graph.add_edge(node._id, edge._to._id)
+                print(node._id)
+                print(edge._to._id)
+                print(len(self._nodes))
                 connection_matrix[node._id][edge._to._id] = True
 
         return nx_graph
@@ -285,7 +288,7 @@ class Graph:
             sample_number = 0
             for comb in combinations(simpleEdges, i):
                 sample_number += 1
-                if sample_number > 400:
+                if sample_number > 1000:
                     break
                 if GraphUtility.isPlanarWithoutEdges(self, list(comb)):
                     is_planar = True
