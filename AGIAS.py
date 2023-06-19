@@ -8,9 +8,47 @@
 """
 __author__      = "Vlad-Mihai Constantinescu"
 
+from itertools import combinations
 import networkx as nx
 import pydot
 import re
+import math
+import random
+
+class GraphUtil:
+    @staticmethod
+    def generateGraphWithMisses(size, missing_edges):
+        nodes = [ Node(i,i,[],"") for i in range(size) ]
+
+        edge_count = -1
+        for i in range(size):
+            for j in range(size):
+                if i == j:
+                    continue
+                edge_count+=1
+                if edge_count in missing_edges:
+                    continue
+
+                nodes[i].add_outgoing_edge(Edge(nodes[i], nodes[j], {}, "black"))
+        return Graph(nodes, [], [], [])
+
+    @staticmethod
+    def generateRandomGraph(size, density):
+        max_links = size * (size-1)
+        required_links = density * max_links
+        links_to_be_removed = max_links - required_links
+        # generate a list of random edges
+        edges_to_remove = []
+        while len(edges_to_remove) < links_to_be_removed:
+            new_edge = random.randint(0, max_links-1)
+            if new_edge in edges_to_remove:
+                continue
+            edges_to_remove.append(new_edge)
+
+        # generate the graph
+        return GraphUtil.generateGraphWithMisses(size, edges_to_remove)        
+        
+
 
 """ Interface to parse data labels """
 class DataLabelParserInterface:
@@ -23,7 +61,6 @@ class SAGEDataLabelParser(DataLabelParserInterface):
       def parse_data(self, label:str) -> dict:
         #For now we only care about the gap property: 
         return {'gap': int(re.split('gap:|sec', label)[1])}
-        
 
 class Node:
     def __init__(self, id, label, alert_signatures, attack_type):
@@ -61,6 +98,14 @@ class Edge:
         to:{self._to._label}, \
         label data:{self._label})" 
 
+class GraphUtility:
+    @staticmethod
+    def isPlanarWithoutEdges(graph, edges):
+        nx_graph = graph.transformToNXGraph(simplify=True, miss=edges)
+        return nx.is_planar(nx_graph)
+
+# make the utility methods static
+# GraphUtility.isPlanarWithoutEdges = staticmethod(GraphUtility.isPlanarWithoutEdges)
 
 class Graph:
     def __init__(self, nodes, source_states, sink_states, teams):
@@ -167,15 +212,31 @@ class Graph:
         graph_nodes = [new_nodes.get(key) for key in new_nodes]
         return Graph(graph_nodes, [], [], self._teams)
 
+    def _edgeInList(self, target, list):
+        for e in list:
+            if e._to._id == target._to._id and e._from._id == target._from._id:
+                return True
+
+        return False
+
     # put the graph into an nx friendly form
-    def transformToNXGraph(self):
+    def transformToNXGraph(self, simplify=False, miss=[]):
         nx_graph = nx.Graph()
         nx_graph.add_nodes_from([n._id for n in self._nodes])
 
+        connection_matrix = [[False for _ in self._nodes] for _ in self._nodes]
+        
         for node in self._nodes:
             for edge in node._outgoing_edges:
+                if simplify and connection_matrix[node._id][edge._to._id]:
+                    continue
+                # skip the missing edge
+                if self._edgeInList(edge, miss):
+                    continue
+
                 nx_graph.add_edge(node._id, edge._to._id)
-        
+                connection_matrix[node._id][edge._to._id] = True
+
         return nx_graph
 
     # put the graph into an nx friendly undirected form
@@ -189,6 +250,55 @@ class Graph:
                 nx_graph.add_edge(edge._to._id, node._id)
         
         return nx_graph
+    
+    def getSimpleEdges(self):
+        result = []
+        connection_matrix = [[False for _ in self._nodes] for _ in self._nodes]
+        
+        for node in self._nodes:
+            for edge in node._outgoing_edges:
+                if connection_matrix[node._id][edge._to._id]:
+                    continue
+                
+                result.append(edge)
+                connection_matrix[node._id][edge._to._id] = True
+
+        return result
+
+    def getAllEdges(self):
+        result = []
+        
+        for node in self._nodes:
+            for edge in node._outgoing_edges: 
+                result.append(edge)
+
+        return result
+
+    """
+        Calculate the minimum number of edges that can be removed so the graph is planar
+    """
+    def calculatePlanarity(self):
+        simpleEdges = self.getSimpleEdges()
+        for i in range(len(simpleEdges)):
+            # print(f"{i}:{len(simpleEdges)}")
+            is_planar = False
+            sample_number = 0
+            for comb in combinations(simpleEdges, i):
+                sample_number += 1
+                if sample_number > 400:
+                    break
+                if GraphUtility.isPlanarWithoutEdges(self, list(comb)):
+                    is_planar = True
+                    break
+
+            if is_planar:
+                return 1/(i+1), 1- (i)/len(simpleEdges) 
+
+    def calculateLinkDensity(self):
+        # sqrt(#links/nodes^2)
+        return math.sqrt(len(self.getSimpleEdges()) /len(self._nodes)**2)
+
+
 
     def calculateBetweennessCentrality(self):
         nx_graph = self.transformToNXGraph()
@@ -228,7 +338,6 @@ class Graph:
         average_ratio /= node_count
 
         return average_ratio
-
 
     def calculateRadialSpread(self):
         closeness = self.calculateClosenessCentrality()
@@ -295,19 +404,51 @@ class Graph:
 
         average_interdependency_among_chunks /= len(chunks)
         return average_interdependency_among_chunks
+    
+    def calculateInterdependencyPerChunkWithClosenessCentrality(self, chunk_allocation, VERBOSE=False):
+        chunks = set(chunk_allocation)
+        index = 0
+        average_interdependency_among_chunks = 0
+        for chunk in chunks:
+            chunk_graph = self.subgraphByChunk(chunk_allocation, chunk)
 
-    # def toNXNetworkFlowFormat(self):
-    #     source = Node(-1, dict(), None, "source")
-    #     sink = Node(-2, dict(), None, "sink")
-    #     sink.set_is_sink(True)
+            # calculate betweeness centrality
+            betweeness = chunk_graph.calculateClosenessCentrality()
 
-    #     nodes = []
-    #     for node in self._nodes:
-    #         nodes.add
-        
-        # def __init__(self, id, label, alert_signatures, attack_type):
-        # def __init__(self, from_node, to_node, label:dict, team):
-        # def __init__(self, nodes, source_states, sink_states, teams):
+            # find max of betweeness
+            max_betweeness = max(betweeness.values())
+            # find key nodes
+            key_nodes = [n for n in chunk_graph._nodes if betweeness.get(n._id) == max_betweeness]
+            if VERBOSE:
+                print(f"________________________Chunk:{chunk}_________________________")
+                print(f"Number of nodes: {len(chunk_graph._nodes)}")
+                print("Key nodes:")
+                for n in key_nodes:
+                    print(n)
+
+            # 1 node => full interdependency
+            if len(chunk_graph._nodes) == 1:
+                average_interdependency_among_chunks += 1
+                if VERBOSE:
+                    print(f"Interdependency: 1")
+                continue
+
+            # calculate interdependency as average of interconectivity between the key_nodes and the other nodes in the group\
+            teams_in_graph = dict()
+            for n in chunk_graph._nodes:
+                for e in n._outgoing_edges:
+                    teams_in_graph.update({e._team: True})
+            average_interdependency = 0
+            for n in key_nodes:
+                average_interdependency += len(n._outgoing_edges) / ((len(chunk_graph._nodes)-1) * len(teams_in_graph)) 
+
+            average_interdependency /= len(key_nodes)
+            average_interdependency_among_chunks += average_interdependency
+            if VERBOSE:
+                print(f"Interdependency: {average_interdependency}")
+
+        average_interdependency_among_chunks /= len(chunks)
+        return average_interdependency_among_chunks
 
     def findPath(self, chunk_allocation, visited, current_node, team):
         visited[current_node._id] = True
