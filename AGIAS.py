@@ -224,7 +224,18 @@ class Graph:
         nx_graph = nx.Graph()
         nx_graph.add_nodes_from([n._id for n in self._nodes])
 
-        connection_matrix = [[False for _ in self._nodes] for _ in self._nodes]
+        max_graph_id = 0
+        for node in self._nodes:
+            if node._id > max_graph_id:
+                max_graph_id = node._id
+            for edge in node._outgoing_edges:
+                if edge._to._id > max_graph_id:
+                    max_graph_id = edge._to._id
+
+        max_graph_id += 1
+
+
+        connection_matrix = [[False for _ in range(max_graph_id)] for _ in range(max_graph_id)]
         
         for node in self._nodes:
             for edge in node._outgoing_edges:
@@ -235,9 +246,9 @@ class Graph:
                     continue
 
                 nx_graph.add_edge(node._id, edge._to._id)
-                print(node._id)
-                print(edge._to._id)
-                print(len(self._nodes))
+                # print(node._id)
+                # print(edge._to._id)
+                # print(max_graph_id)
                 connection_matrix[node._id][edge._to._id] = True
 
         return nx_graph
