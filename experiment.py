@@ -41,52 +41,26 @@ class Touple:
     def __str__(self):
         return f"{self._from} -> {self._to} : {self._value}"
 
-patterns = []
-#load patterns
-file1 = open('patterns_2018.csv', 'r')
-lines = file1.readlines()
-count = 0
-for line in lines:
-    if count > 0:
-        parts = line.split(',')
-        patterns.append(Touple(parts[0], parts[1], float(parts[2])))
-    count += 1
 
-with open('PatternsWithBetweennessResults_2018.csv', 'w', newline='') as csvfile:
+with open('patterns_markov_chain_2017.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
-    # writer.writerow(["GraphNo", "ChunksNo", "Interdependency", "Explainability"])
-    interpretability = 0 
+    writer.writerow(["begin", "end", "popularity"])
+    # interpretability = 0
+    patterns = {}
     for file in os.listdir('AG_2017_markov_chain'):
         if file.endswith('.dot'):
             total_graphs += 1
             graph = parser.parseFromFile("AG_2017_markov_chain/" + file)
-    
-            chunks = graph.splitIntoCognitiveChunks(patterns)
-            # graph.exportAsDotPerChunks(str(total_graphs), chunks)
-            # break;        
-            # print(chunks)
-            # interd = graph.calculateInterdependencyPerChunk(chunks)
-            interdependency = graph.calculateInterdependencyPerChunk(chunks)
-            # break
-            # calculate explainability 
-            chunks_number = len(set(chunks))            
-            print(f"_______________________________Graph:{total_graphs}_______________________________")
-            print(f"Number of chunks: {chunks_number}")
-            print(f"Interdependency: {interdependency}")
-            
-            planarity, relative_planarity = graph.calculatePlanarity()
-            explainability = (1/chunks_number + (1-interdependency) + planarity)/3
+            patterns = graph.analysePatterns(patterns)
+            print(f"Attack graph: {total_graphs}")
 
-            print(f"Planarity: {planarity}")
-            print(f"Explainability: {explainability}")
-            
-            interpretability += explainability
-            # writer.writerow([total_graphs, chunks_number, interdependency, explainability])
-            graph.exportAsDot(str(total_graphs))
-            graph.exportAsDotPerChunks(str(total_graphs), chunks)
-            # break
-    print(f"Average interpretability : {interpretability/total_graphs}")
-# TO DO :
-# [ ] Find multiple ways to calculate interdependency
-# [ ] Find multiple ways of chuncking
-# 
+    for pattern in patterns:
+        total = 0
+        print(pattern)
+        for end in patterns[pattern]:
+            total += patterns[pattern][end]
+        for end in patterns[pattern]:
+            writer.writerow([pattern, end, patterns[pattern][end]/total])
+            print(f"{end} -> {patterns[pattern][end]/total}")
+        print("____________________________")
+    
